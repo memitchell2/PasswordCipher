@@ -6,6 +6,10 @@ public class Interactive {
         Scanner scanner = new Scanner(System.in);
         String userInput = "";
 
+        // Create an instance of PasswordEncryptor and PasswordDecryptor
+        PasswordEncryptor encryptor = new PasswordEncryptor();
+        PasswordDecryptor decryptor = new PasswordDecryptor();
+        
         // Display initial message
         System.out.println("\n\nWelcome to the CPass software!\n.\n.\n.");
         System.out.println("This software is a password encryption tool designed to keep your passwords safe.\nTo use this software is quite simple!\nYou will will only need three things:\n1. A password you want to encrypt\n2. A key to encrypt the password\n3. The name of the website or service you want to use the password for!");
