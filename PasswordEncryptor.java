@@ -1,57 +1,58 @@
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
+
 public class PasswordEncryptor {
 
-    // Constructor for PasswordEncryptor (if needed)
-    public PasswordEncryptor() {
-        // Initialize any fields if necessary
+    private String key;
+
+    // Constructor for PasswordEncryptor
+    public PasswordEncryptor(String key) {
+        this.key = key;
     }
 
-    // Method to encrypt the password
-    public static String encrypt(String password, String website) {
-        // Cipher = function(Password xor Website)
-        // for this encryption the function will be a hash function similar to OTP and DES
-
-        // Error checking password length
-        if (password.length() < 6) {
-            System.out.println("Password is too short. Please enter a password with more than 5 characters.");
-            return "";
-        } else if (password.length() > 20) {
-            System.out.println("Password is too long. Please enter a password with less than 20 characters.");
-            return "";
-        }
-
-        // Force the key to be longer than the password
-        while (password.length() >= website.length()) {
-            website = website + website;  // Repeat the website until it is longer than the password
-        }
-
-        // Perform the xor operation
-        String xorResult = xor(password, website);
-
-
-
-            
-        return xorResult; // Just a simple example, not real encryption
-    }
-
-    // Method to perfrom the xor operation
-    public static String xor(String password, String website) {
+    // Method to XOR a string with a key
+    private String xorString(String input, String key) {
         StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < password.length(); i++) {
-            result.append((char) (password.charAt(i) ^ website.charAt(i)));  // XOR each character with the key
+        for (int i = 0; i < input.length(); i++) {
+            result.append((char) (input.charAt(i) ^ key.charAt(i % key.length())));
         }
         return result.toString();
     }
 
-    // Hashing method to encrypt the password
-    public static String hash(String password, String key) {
-        // Example hashing logic (you should replace this with actual hashing logic)
-        return password + "_hashed"; // Just a simple example, not real hashing
+    // Method to create a hash (MAC) using SHA-256
+    private String generateHash(String input) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] encodedHash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+
+        // Convert byte array to hex string
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : encodedHash) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
-    // Storage method to save the encrypted password
-    public static void store(String encryptedPassword, String website) {
-        // Example storage logic (you should replace this with actual storage logic)
-        System.out.println("The encrypted password for " + website + " has been stored.");
+    // Method to encrypt the password
+    public String encrypt(String password, String website) {
+        try {
+            // XOR the password and website with the key
+            String xorPassword = xorString(password, key);
+            String xorWebsite = xorString(website, key);
+
+            // Combine the XORed values and generate a MAC (hash)
+            String combinedString = xorPassword + xorWebsite;
+            String mac = generateHash(combinedString);
+
+            // Return the XORed password with the MAC appended
+            return xorPassword + ":" + mac;
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Error generating hash: " + e.getMessage());
+        }
     }
 }

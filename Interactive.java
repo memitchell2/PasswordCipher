@@ -6,13 +6,16 @@ public class Interactive {
         Scanner scanner = new Scanner(System.in);
         String userInput = "";
 
-        // Create an instance of PasswordEncryptor and PasswordDecryptor
-        PasswordEncryptor encryptor = new PasswordEncryptor();
-        PasswordDecryptor decryptor = new PasswordDecryptor();
+        // Initialize the key (you can replace this with a dynamic key if needed)
+        String key = "mySecretKey";
+        
+        // Create instances of PasswordEncryptor and PasswordDecryptor
+        PasswordEncryptor encryptor = new PasswordEncryptor(key);
+        PasswordDecryptor decryptor = new PasswordDecryptor(key);
 
         // Display initial message
         System.out.println("\n\nWelcome to the CPass software!\n.\n.\n.");
-        System.out.println("This software is a password encryption tool designed to keep your passwords safe.\nTo use this software is quite simple!\nYou will will only need two things:\n1. A password you want to encrypt\n2. The name of the website or service you want to use the password for!");
+        System.out.println("This software is a password encryption tool designed to keep your passwords safe.\nTo use this software is quite simple!\nYou will only need two things:\n1. A password you want to encrypt\n2. The name of the website or service you want to use the password for!");
         System.out.println(".\n.\n.\nLet's get started with the menu!");
 
         // Display menu choices
@@ -37,17 +40,19 @@ public class Interactive {
                 String password = scanner.nextLine();
                 System.out.println("Please enter the name of the website or service you would like to use the password for: ");
                 String website = scanner.nextLine();
-                System.out.println("The encrypted password is: " + PasswordEncryptor.encrypt(password, website));
+                // Use the instance of PasswordEncryptor to encrypt
+                String encryptedPassword = encryptor.encrypt(password, website);
+                System.out.println("The encrypted password is: " + encryptedPassword);
 
             } else if (userInput.equalsIgnoreCase("decrypt")) {
                 System.out.println("You have chosen to decrypt a password!");
                 System.out.println("Please enter the encrypted password you would like to decrypt: ");
                 String encryptedPassword = scanner.nextLine();
-                System.out.println("Please enter the key you would like to use to decrypt the password: ");
-                String key = scanner.nextLine();
                 System.out.println("Please enter the name of the website or service you would like to use the password for: ");
                 String website = scanner.nextLine();
-                System.out.println("The decrypted password is: " + PasswordDecryptor.decrypt(encryptedPassword, website));
+                // Use the instance of PasswordDecryptor to decrypt
+                String decryptedPassword = decryptor.decrypt(encryptedPassword, website);
+                System.out.println("The decrypted password is: " + decryptedPassword);
 
             } else if (userInput.equalsIgnoreCase("vault")) {
                 System.out.println("You have chosen to access the password vault!");
@@ -55,7 +60,7 @@ public class Interactive {
                 String password = scanner.nextLine();
                 System.out.println("Please enter the pin to access the vault: ");
                 String pin = scanner.nextLine();
-                // System.out.println("The password vault is: " + PasswordCipher.vault(password, pin));
+                // Vault functionality can be added here
 
             } else if (userInput.equalsIgnoreCase("info")) {
                 System.out.println("You have chosen to learn more about password encryption!");
