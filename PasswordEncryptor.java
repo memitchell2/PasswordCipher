@@ -1,58 +1,49 @@
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.nio.charset.StandardCharsets;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.File;
 
 public class PasswordEncryptor {
-
-    private String key;
-
-    // Constructor for PasswordEncryptor
+    private final String key;
+    
     public PasswordEncryptor(String key) {
         this.key = key;
     }
 
-    // Method to XOR a string with a key
-    private String xorString(String input, String key) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            result.append((char) (input.charAt(i) ^ key.charAt(i % key.length())));
-        }
-        return result.toString();
+    public String encrypt(String password, String website, String destinationFilePath) throws IOException {
+        String combinedInput = password + ":" + website; // Combine password and website for encryption
+        String encryptedPassword = cipherEncrypt(combinedInput, key, destinationFilePath);
+        saveToFile(encryptedPassword, destinationFilePath);
+        return encryptedPassword;
     }
 
-    // Method to create a hash (MAC) using SHA-256
-    private String generateHash(String input) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] encodedHash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+    private String cipherEncrypt(String input, String key, String destinationFilePath) {
+        int rotation = key.length(); // Determine rotation based on key length
+        StringBuilder encrypted = new StringBuilder();
 
-        // Convert byte array to hex string
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : encodedHash) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
+        for (char c : input.toCharArray()) {
+            if (Character.isLetter(c)) {
+                // Rotate letters (case-preserving)
+                char base = Character.isUpperCase(c) ? 'A' : 'a';
+                encrypted.append((char) ((c - base + rotation) % 26 + base));
+            } else if (Character.isDigit(c)) {
+                // Rotate digits
+                encrypted.append((char) ((c - '0' + rotation) % 10 + '0'));
+            } else {
+                // Leave non-alphanumeric characters unchanged
+                encrypted.append(c);
             }
-            hexString.append(hex);
         }
-        return hexString.toString();
+        return encrypted.toString();
     }
 
-    // Method to encrypt the password
-    public String encrypt(String password, String website) {
-        try {
-            // XOR the password and website with the key
-            String xorPassword = xorString(password, key);
-            String xorWebsite = xorString(website, key);
-
-            // Combine the XORed values and generate a MAC (hash)
-            String combinedString = xorPassword + xorWebsite;
-            String mac = generateHash(combinedString);
-
-            // Return the XORed password with the MAC appended
-            return xorPassword + ":" + mac;
-
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error generating hash: " + e.getMessage());
+    public void saveToFile(String encryptedPassword, String destinationFilePath) throws IOException {
+        File file = new File(destinationFilePath);
+        try (FileWriter writer = new FileWriter(destinationFilePath)) {
+            writer.write(encryptedPassword);
+            System.out.println("Encrypted password saved to: " + file.getAbsolutePath());
         }
     }
+
 }
+
+

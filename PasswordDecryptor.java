@@ -1,66 +1,40 @@
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class PasswordDecryptor {
+    private final String key;
 
-    private String key;
-
-    // Constructor for PasswordDecryptor
     public PasswordDecryptor(String key) {
         this.key = key;
     }
 
-    // Method to XOR a string with a key
-    private String xorString(String input, String key) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            result.append((char) (input.charAt(i) ^ key.charAt(i % key.length())));
-        }
-        return result.toString();
+    public String decrypt(String encryptedPassword, String key) throws IOException {
+        // Read encrypted password from the file
+        return cipherDecrypt(encryptedPassword, key);
     }
 
-    // Method to create a hash (MAC) using SHA-256
-    private String generateHash(String input) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] encodedHash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+    private String cipherDecrypt(String input, String key) {
+        int rotation = key.length(); // Determine rotation based on key length
+        StringBuilder decrypted = new StringBuilder();
 
-        // Convert byte array to hex string
-        StringBuilder hexString = new StringBuilder();
-        for (byte b : encodedHash) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
-
-    // Method to decrypt the password and verify the MAC
-    public String decrypt(String encryptedPassword, String website) {
-        try {
-            // Split the encrypted password and the MAC
-            String[] parts = encryptedPassword.split(":");
-            String xorPassword = parts[0];
-            String receivedMac = parts[1];
-
-            // XOR the password back to its original form
-            String decryptedPassword = xorString(xorPassword, key);
-
-            // Recalculate the MAC for validation
-            String combinedString = xorPassword + xorString(website, key);
-            String recalculatedMac = generateHash(combinedString);
-
-            // Verify that the recalculated MAC matches the received MAC
-            if (recalculatedMac.equals(receivedMac)) {
-                return decryptedPassword;
+        for (char c : input.toCharArray()) {
+            if (Character.isLetter(c)) {
+                // Reverse rotation for letters (case-preserving)
+                char base = Character.isUpperCase(c) ? 'A' : 'a';
+                decrypted.append((char) ((c - base - rotation + 26) % 26 + base));
+            } else if (Character.isDigit(c)) {
+                // Reverse rotation for digits
+                decrypted.append((char) ((c - '0' - rotation + 10) % 10 + '0'));
             } else {
-                throw new RuntimeException("MAC verification failed. The data may have been tampered with.");
+                // Leave non-alphanumeric characters unchanged
+                decrypted.append(c);
             }
-
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error generating hash: " + e.getMessage());
         }
+        return decrypted.toString();
+    }
+
+    public String loadFromFile(String encryptedFilePath) throws IOException {
+        return Files.readString(Path.of(encryptedFilePath)).trim(); // Read encrypted password from file
     }
 }
