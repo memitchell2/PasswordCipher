@@ -7,9 +7,38 @@ public class Interactive {
         Scanner scanner = new Scanner(System.in);
         String userInput = "";
 
+        // Create instances of encrypt and decrypt classes
+        PasswordEncryptor encryptor = new PasswordEncryptor("website");
+        PasswordDecryptor decryptor = new PasswordDecryptor("website");
+
+        // Add necessary logic for batch processing with a single password
+        if (args.length >= 2) {
+            String batchInputDestination = args[1];
+            String password = args[0];
+            for (int i = 2; i < args.length; i++) {
+                // Assign counter to a zero index to start
+                int counter = i - 2;
+                String website = args[i];
+                try {
+                    encryptor.encrypt(password, website, batchInputDestination, counter);
+                    System.out.println("The encrypted password is saved to: " + batchInputDestination + "\n for website: " + website);
+                } catch 
+                (IOException e) {
+                    System.err.println("An error occurred while saving the encrypted password for website: " + website);
+                }
+                // Increment counter
+                counter++;
+            }
+            // Exit the program after batch processing
+            System.out.println("Exiting the program. Goodbye!");
+            System.exit(0);
+        }
+
         // Display initial message
-        System.out.println("\n\nWelcome to the CPass lite software!\n.\n.\n.");
+        System.out.println(".\n.\n.\nWelcome to the CPass lite software!\n.\n.\n.");
         System.out.println("This software is a password encryption tool designed to keep your passwords safe.\nTo use this software is quite simple!\nYou will only need three things:\n1. A password you want to encrypt\n2. The name of the website or service you want to use the password for!\n3. The destination file for the password vault!");
+        System.out.println("NOTE: This is the single use or interactive mode of this software. For batch processing, please input information in this order:");
+        System.out.println("\'java Interactive <password> <destination> <website1> <website2> ... <websiteN>\'");
         System.out.println(".\n.\n.\nLet's get started with the menu!");
 
         // Display menu choices
@@ -37,9 +66,9 @@ public class Interactive {
                 System.out.println("Please enter the destination file path to save the encrypted password: ");
                 String destination = scanner.nextLine();
                 // Use the instance of PasswordEncryptor to encrypt
-                PasswordEncryptor encryptor = new PasswordEncryptor(website);
                 try {
-                    String encryptedPassword = encryptor.encrypt(password, website, destination);
+                    // Set count to zero when not in batch mode
+                    String encryptedPassword = encryptor.encrypt(password, website, destination, 0);
                     System.out.println("The encrypted password is: " + encryptedPassword);
                 } catch (IOException e) {
                     System.err.println("An error occurred while saving the encrypted password: " + e.getMessage());
@@ -52,7 +81,6 @@ public class Interactive {
                 System.out.println("Please enter the name of the website or service you would like to use the password for: ");
                 String website = scanner.nextLine();
                 // Use the instance of PasswordDecryptor to decrypt
-                PasswordDecryptor decryptor = new PasswordDecryptor(website);
                 try {
                     String decryptedPassword = decryptor.decrypt(encryptedPassword, website);
                     System.out.println("The encrypted password is: " + decryptedPassword);
