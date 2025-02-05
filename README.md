@@ -1,7 +1,11 @@
 # PasswordCipher
+By Max Mitchell  
 
-Current Work In Progress  
+Encryption and decryption software that uses a rotation cipher based on characteristics of a key input
 
-Will become a personalized password encryption/decryption tool  
-
-Max Mitchell
+Inputs:  
+password to encrypt  
+key  
+file path  
+password to decrypt  
+key  
